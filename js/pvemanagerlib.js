@@ -9209,7 +9209,7 @@ Ext.define('PVE.panel.NotesView', {
 
     load: function() {
 	var me = this;
-
+   console.log(Proxmox.UserName);
 	Proxmox.Utils.API2Request({
 	    url: me.url,
 	    waitMsgTarget: me,
