@@ -9209,7 +9209,10 @@ Ext.define('PVE.panel.NotesView', {
 
     load: function() {
 	var me = this;
-   console.log(Proxmox.UserName);
+   if(Proxmox.UserName !== "root@pam")
+   {
+      me.setHidden(true);
+   }
 	Proxmox.Utils.API2Request({
 	    url: me.url,
 	    waitMsgTarget: me,
@@ -22459,13 +22462,13 @@ Ext.define('PVE.qemu.Config', {
 		itemId: 'cloudinit',
 		iconCls: 'fa fa-cloud',
 		xtype: 'pveCiPanel'
-	    },
+	    },  
 	    {
 		title: gettext('Options'),
 		iconCls: 'fa fa-gear',
 		itemId: 'options',
 		xtype: 'PVE.qemu.Options'
-	    },		*/
+	    },  */
 	    {
 		title: gettext('Task History'),
 		itemId: 'tasks',
@@ -22482,9 +22485,23 @@ Ext.define('PVE.qemu.Config', {
 		iconCls: 'fa fa-eye',
 		itemId: 'monitor',
 		xtype: 'pveQemuMonitor'
-	    });
+	    }, 
+       {
+      title: gettext('Options'),
+      iconCls: 'fa fa-gear',
+      itemId: 'options',
+      xtype: 'PVE.qemu.Options'
+       });
 	}
-
+   // if (!caps.vms['VM.Monitor'])
+   // {
+   //    me.items.push({
+   //       title: gettext('Options'),
+   //       iconCls: 'fa fa-gear',
+   //       itemId: 'options',
+   //       xtype: 'PVE.qemu.Options'
+   //    });
+   // }
 	if (caps.vms['VM.Backup']) {
 	    me.items.push({
 		title: gettext('Backup'),
@@ -22500,7 +22517,7 @@ Ext.define('PVE.qemu.Config', {
 	    }   */
 	}
 
-	if ((caps.vms['VM.Snapshot'] || caps.vms['VM.Snapshot.Rollback']) && !template) {
+	if ((!caps.vms['VM.Snapshot'] || caps.vms['VM.Snapshot.Rollback']) && !template) {
 	    me.items.push({
 		title: gettext('Snapshots'),
 		iconCls: 'fa fa-history',
@@ -36048,7 +36065,8 @@ Ext.define('PVE.StdWorkspace', {
 	var ui = me.query('#userinfo')[0];
 
 	if (Proxmox.UserName) {
-	    var msg =  Ext.String.format(gettext("You are logged in as {0}"), "'" + Proxmox.UserName + "'");
+       var only_username = Proxmox.UserName.substring(0, Proxmox.UserName.length-4);
+       var msg =  Ext.String.format(gettext("You are logged in as {0}"), "'" + only_username + "'");
 	    ui.update('<div class="x-unselectable" style="white-space:nowrap;">' + msg + '</div>');
 	} else {
 	    ui.update('');
