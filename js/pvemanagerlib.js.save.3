@@ -2863,7 +2863,6 @@ Ext.define('PVE.qemu.CmdMenu', {
 		text: gettext('Migrate'),
 		iconCls: 'fa fa-fw fa-send-o',
 		hidden: standalone || !caps.vms['VM.Migrate'],
-		hidden: true,
 		handler: function() {
 		    var win = Ext.create('PVE.window.Migrate', {
 			vmtype: 'qemu',
@@ -5965,7 +5964,6 @@ Ext.define('PVE.form.GlobalSearchField', {
     alias: 'widget.pveGlobalSearchField',
 
     emptyText: gettext('Search'),
-    hidden: false,
     enableKeyEvents: true,
     selectOnFocus: true,
     padding: '0 5 0 5',
@@ -7788,21 +7786,11 @@ Ext.define('PVE.window.LoginWindow', {
 			    pf.focus(false);
 			}
 		    }
-		},
-	      change: function(f, value) { //set realm if root or not
-        	 var rf = this.lookupReference('roleField');
-	         if(value === "root"){
-        	    rf.setValue("pam");
-	         }
-        	 else {
-	            rf.setValue("pve");
-        	 }
-	      }
+		}
 	    },
 	    'field[name=realm]': {
 		change: function(f, value) {
 		    var otp_field = this.lookupReference('otpField');
-
 		    if (f.needOTP(value)) {
 			otp_field.setVisible(true);
 			otp_field.setDisabled(false);
@@ -7900,9 +7888,7 @@ Ext.define('PVE.window.LoginWindow', {
 	    },
 	    {
 		xtype: 'pveRealmComboBox',
-		name: 'realm',
-		reference: 'roleField',
-		hidden: true
+		name: 'realm'
 	    },
 	    {
 		xtype: 'proxmoxLanguageSelector',
@@ -10993,9 +10979,11 @@ Ext.define('PVE.tree.ResourceTree', {
 	me.setText(info);
 
 	var defaults;
-	if (info.groupbyid){
-	   if (Proxmox.UserName !== 'root@pam')//remove the groupbyid on left pannel
+	if (info//remove the groupbyid on left pannel.groupbyid){
+//	   return null;  //remove the groupbyid on left pannel
+	    if (Proxmox.Username !== 'root@pam') 
 		return null;
+	    console.log("ROOOO", Proxmox.UserName);
 	    info.text = info.groupbyid;
 	    if (info.type === 'type') {
 		defaults = PVE.tree.ResourceTree.typeDefaults[info.groupbyid];
@@ -22309,7 +22297,7 @@ Ext.define('PVE.qemu.Config', {
 	var migrateBtn = Ext.create('Ext.Button', {
 	    text: gettext('Migrate'),
 	    disabled: !caps.vms['VM.Migrate'],
-	    hidden: !caps.vms['VM.Migrate'], //(PVE.data.ResourceStore.getNodes().length < 2),
+	    hidden: PVE.data.ResourceStore.getNodes().length < 2,
 	    handler: function() {
 		var win = Ext.create('PVE.window.Migrate', {
 		    vmtype: 'qemu',
@@ -22323,7 +22311,6 @@ Ext.define('PVE.qemu.Config', {
 
 	var moreBtn = Ext.create('Proxmox.button.Button', {
 	    text: gettext('More'),
-	    hidden: !caps.vms['VM.Migrate'],
 	    menu: { items: [
 		{
 		    text: gettext('Clone'),
@@ -22454,7 +22441,7 @@ Ext.define('PVE.qemu.Config', {
 		iconCls: 'fa fa-desktop',
 		xtype: 'PVE.qemu.HardwareView'
 	    },
-/*	    {
+	    {
 		title: 'Cloud-Init',
 		itemId: 'cloudinit',
 		iconCls: 'fa fa-cloud',
@@ -22465,7 +22452,7 @@ Ext.define('PVE.qemu.Config', {
 		iconCls: 'fa fa-gear',
 		itemId: 'options',
 		xtype: 'PVE.qemu.Options'
-	    },		*/
+	    },
 	    {
 		title: gettext('Task History'),
 		itemId: 'tasks',
@@ -22491,13 +22478,13 @@ Ext.define('PVE.qemu.Config', {
 		iconCls: 'fa fa-floppy-o',
 		xtype: 'pveBackupView',
 		itemId: 'backup'
-	    });
-/*	    {
+	    },
+	    {
 		title: gettext('Replication'),
 		iconCls: 'fa fa-retweet',
 		xtype: 'pveReplicaView',
 		itemId: 'replication'
-	    }   */
+	    });
 	}
 
 	if ((caps.vms['VM.Snapshot'] || caps.vms['VM.Snapshot.Rollback']) && !template) {
@@ -22509,8 +22496,7 @@ Ext.define('PVE.qemu.Config', {
 	    });
 	}
 
-//	if (caps.vms['VM.Console']) {
-	if (false) {
+	if (caps.vms['VM.Console']) {
 	    me.items.push(
 		{
 		    xtype: 'pveFirewallRules',
@@ -36149,17 +36135,11 @@ Ext.define('PVE.StdWorkspace', {
 	    } 
 	});
 
-	var searchField = Ext.createWidget('pveGlobalSearchField', {tree: rtree});
-
 	sprovider.on('statechange', function(sp, key, value) {
 	    if (key === 'GuiCap' && value) {
 		caps = value;
 		createVM.setDisabled(!caps.vms['VM.Allocate']);
 		createCT.setDisabled(!caps.vms['VM.Allocate']);
-		createVM.setHidden(!caps.vms['VM.Allocate']);
-                createCT.setHidden(!caps.vms['VM.Allocate']);
-                searchField.setHidden(!caps.vms['VM.Allocate']);
-                selview.setHidden(!caps.vms['VM.Allocate']);
 	    }
 	});
 
@@ -36189,11 +36169,10 @@ Ext.define('PVE.StdWorkspace', {
 			    id: 'versioninfo',
 			    html: 'Virtual Environment'
 			},
-			searchField,
-			//{
-			//    xtype: 'pveGlobalSearchField',
-			//    tree: rtree
-			//},
+			{
+			    xtype: 'pveGlobalSearchField',
+			    tree: rtree
+			},
 			{
 			    flex: 1
 			},
